@@ -9,9 +9,11 @@ import 'package:flutter_calendar_scheduler/database/drift_database.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
   final DateTime selectedDate;
+  final Schedule? schedule;
 
   const ScheduleBottomSheet({
     required this.selectedDate,
+    this.schedule,
     Key? key
   }) : super(key: key);
 
@@ -23,9 +25,23 @@ class ScheduleBottomSheet extends StatefulWidget {
 class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
   final GlobalKey<FormState> formKey = GlobalKey(); // 폼 key 생성
 
+
   int? startTime; // 시작 시간 저장 변수
   int? endTime;   // 종료 시간 저장 변수
-  String? content;  // 일정 내용 저장 변수
+  String? content;
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.schedule != null) {
+      startTime = widget.schedule!.startTime;
+      endTime   = widget.schedule!.endTime;
+      content   = widget.schedule!.content;
+    }
+
+  } // 일정 내용 저장 변수
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +65,8 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                       children: [
                         Expanded(
                           child: CustomTextField( //시작 시간 입력 필드
+                            timecontent: startTime.toString(),
+                            schedule: widget.schedule,
                             label: '시작 시간',
                             isTime: true,
                             onSaved: (String? val) {
@@ -59,7 +77,9 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                           ),
                         ),
                         Expanded(
-                            child: CustomTextField( // 종료 시간 입력 필드
+                            child: CustomTextField(// 종료 시간 입력 필드
+                              timecontent: endTime.toString(),
+                              schedule: widget.schedule,
                               label: '종료 시간',
                               isTime: true,
                               onSaved: (String? val) {
@@ -74,6 +94,8 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                     SizedBox(height: 8.0),
                     Expanded(
                       child: CustomTextField(
+                        timecontent: content,
+                        schedule: widget.schedule,
                         label: '내용',
                         isTime: false,
                         onSaved: (String? val){
@@ -106,14 +128,27 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     if(formKey.currentState!.validate()){ // 폼 검증하기
       formKey.currentState!.save();       // 폼 저장하기
 
-      await GetIt.I<LocalDatabase>().createSchedule(
+      final localDb = GetIt.I<LocalDatabase>();
+      if (widget.schedule != null) {
+        await localDb.updateSchedule(SchedulesCompanion(
+          id: Value(widget.schedule!.id),
+          startTime: Value(startTime!),
+          endTime: Value(endTime!),
+          content: Value(content!),
+          date: Value(widget.selectedDate),
+        ));
+      } else {
+        await localDb.createSchedule(
           SchedulesCompanion(
             startTime: Value(startTime!),
             endTime: Value(endTime!),
             content: Value(content!),
             date: Value(widget.selectedDate),
           ),
-      );
+        );
+      }
+
+
 
       Navigator.of(context).pop(); // 일정 생성 후 화면 뒤로 가기
 
