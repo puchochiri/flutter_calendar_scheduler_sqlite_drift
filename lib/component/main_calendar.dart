@@ -22,7 +22,7 @@ class MainCalendar extends StatelessWidget {
           date.day   == selectedDate.day,
       firstDay: DateTime(1800, 1, 1), //첫째 날
       lastDay: DateTime(3000, 1, 1),  //마지막 날
-      focusedDay: DateTime.now(),     //화면에 보여지는 날
+      focusedDay: selectedDate,     //화면에 보여지는 날
       headerStyle: HeaderStyle(       //달력 최상단 스타일
         titleCentered: true,          // 제목 중앙에 위치하가
         formatButtonVisible: false,   // 달력 크기 선택 옵션 없애기
